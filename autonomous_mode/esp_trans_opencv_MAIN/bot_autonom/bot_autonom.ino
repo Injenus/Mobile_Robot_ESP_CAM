@@ -28,13 +28,13 @@ Servo_val sv;
 Servo servo[WHEEL_NUM];
 int pin_arm[4] = {0, 2, 4, 6};
 ServoDriverSmooth arm_servo[4](0x40);
-int arm_pos[4] = {0, 90, 90, 90}; // 0 -var , 1-3 - const
+int arm_pos[4] = {179, 77, 103, 170}; // 0 -var , 1-3 - const
 int arm_mode = 0;
 
 struct Arm_pos {
-  int off = 35;
-  int pos1 = 115;
-  int pos2 = 140;
+  int off = 179;
+  int pos1 = 100-25;
+  int pos2 = 140-25;
   bool flag = true;
 };
 Arm_pos apos;
@@ -73,7 +73,7 @@ bool main_flag = false;
 int m_c = 0;
 
 uint32_t arm_timer = 0;
-uint32_t ARM_P = 333;
+uint32_t ARM_P = 390;
 
 int l = 0;
 int r = 0;
@@ -84,7 +84,7 @@ void setup()
   //  {
   //    pinMode(i, OUTPUT);
   //  }
-  Serial.begin(9600);       // открываем порт для связи с ПК
+  Serial.begin(115200);       // открываем порт для связи с ПК
   radio.begin();            // активировать модуль
   radio.setAutoAck(1);      // режим подтверждения приёма, 1 вкл 0 выкл
   radio.setRetries(0, 15);  // (время между попыткой достучаться, число попыток)
@@ -117,9 +117,9 @@ void setup()
   }
   //arm_servo[0].setAccel(0.95);
   arm_servo[0].write(apos.off);
-  arm_servo[1].write(90);
-  arm_servo[2].write(90);
-  arm_servo[3].write(90);
+  arm_servo[1].write(arm_pos[1]);
+  arm_servo[2].write(arm_pos[2]);
+  arm_servo[3].write(arm_pos[3]);
 
   digitalWrite(rgb.g, 1);
   delay(100);

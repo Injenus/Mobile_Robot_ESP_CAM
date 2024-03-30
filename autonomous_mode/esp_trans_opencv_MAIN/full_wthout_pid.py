@@ -80,7 +80,7 @@ def get_move():
         # cv2.imshow(cam_move.name, cam_move.frame)
     except:
         print('ERR receive MOVE frame')
-        exit(-1)
+        # exit(-1)
     return cam_move.frame
 
 
@@ -89,18 +89,18 @@ def get_sense():
         cam_sens.get_frame(True)
     except:
         print('ERR receive SENS frame')
-        exit(-1)
+        # exit(-1)
     return cam_sens.frame
 
 
 def move(move_timer, ser):
-    dt = 0.06  #0.06
-    l, r = 0, 0
-    kp = 0.2  # 0.3q
-    ki = 0.6  # kp*2*dt
-    kd = 0.0  # kp/8/dtq
-    left_wheel = PID(kp, ki, kd, dt)
-    right_wheel = PID(kp, ki, kd, dt)
+    dt = 0.09  # 0.06
+
+    base_v = 10
+    dop = 1
+    v = 0
+    l, r = base_v, base_v
+    left_w, right_w = base_v, base_v
 
     low_b = np.uint8([0, 0, 0])
     high_b = np.uint8([85, 85, 85])
@@ -136,36 +136,27 @@ def move(move_timer, ser):
                             cy = int(M['m01']/M['m00'])
                             # print("CX : "+str(cx)+"  CY : "+str(cy))
                             # print(cx)
-                            if cx > width // 2 + width/3.5:
-                                left_wheel.calc(cx - width // 2)
-                                right_wheel.calc(-(cx - width // 2))
-                                right_wheel.res = 11
-                            elif cx > width // 2 + 5:
-                                left_wheel.calc(cx - width // 2)
-                                right_wheel.calc(-(cx - width // 2))
+                            if cx > width // 2 + 30:
+                                left_w = base_v + v + dop
+                                right_w = base_v + v
                                 # print("Turn RIGFT")
-                            elif cx < width // 2 - width/3.5:
-                                right_wheel.calc(width // 2 - cx)
-                                left_wheel.calc(-(width // 2 - cx))
-                                left_wheel.res = 11
-                            elif cx < width // 2 - 5:
-                                right_wheel.calc(width // 2 - cx)
-                                left_wheel.calc(-(width // 2 - cx))
+                            elif cx < width // 2 - 30:
+                                left_w = base_v + v
+                                right_w = base_v + v + dop
                                 # print("Turn LEFT")
                             else:
-                                left_wheel.calc(-1)
-                                right_wheel.calc(-1)
+                                left_w = base_v + dop
+                                right_w = base_v + dop
                                 # print('IDEAL')
                             cv2.circle(cadr, (cx, cy), 3, (0, 0, 255), -1)
                             cv2.drawContours(cadr, c, -1, (0, 255, 0), 1)
-                            l, r = left_wheel.res, right_wheel.res
                         else:
                             print("Doesnt have M")
-                            l, r = 10, 10
+                            l, r = base_v, base_v
                     else:
                         print("I don't see the line")
-                        l, r = 10, 10
-                    
+                        l, r = base_v, base_v
+                    l, r = left_w, right_w
                     # send_com(l, -r, 0)
                     msg = '#,{},{},{},;q'.format(l, r, int(e_arm.is_set()))
                     byte_msg = msg.encode()
@@ -184,6 +175,22 @@ def move(move_timer, ser):
                     # cv2.imshow("Mask", mask)q
                     cv2.imshow("MOVE", cadr)
 
+                else:
+                    msg = '#,{},{},{},;q'.format(10, 10, 0)
+                    byte_msg = msg.encode()
+                    print(byte_msg)
+                    try:
+                        ser.write(byte_msg)
+                        ser.flush()
+                        print('SEND:', msg)
+                        print()
+                        pass
+                    except:
+                        print('pizdec')
+                        connect()
+                    # print(ser.readline())
+
+
         key = cv2.waitKey(1)
         if key == ord('q'):
             cam_move.ex_event.set()
@@ -191,7 +198,7 @@ def move(move_timer, ser):
 
 
 def sens(sens_timer):
-    dt = 0.06
+    dt = 0.07
     l_h, l_s, l_v = 170, 64, 64
     u_h, u_s, u_v = 180, 255, 255
     l_b = np.array([l_h, l_s, l_v])
@@ -217,10 +224,11 @@ def sens(sens_timer):
                     x, y, w, h = cv2.boundingRect(marker_corners)
                     cv2.rectangle(frame, (x, y), (x + w, y + h),
                                   (0, 255, 255), 5)
-                    if ids[0] == 20 and not e_aruco_init.is_set():
+                    if ids[0] == 10 and not e_aruco_init.is_set():
                         e_aruco_init.set()
-                    if ids[0] == 10 and e_aruco_init.is_set():
+                    if ids[0] == 20 and e_aruco_init.is_set():
                         e_aruco_init.clear()
+                        e_pomidor.clear()
 
                     if ids[0] == 2 and e_pomidor.is_set():
                         e_pomidor.clear()
@@ -228,12 +236,12 @@ def sens(sens_timer):
                     if ids[0] == 1:
                         # проехали какой-то овосч
                         pass
-                        
+
                 if e_pomidor.is_set():
                     e_arm.set()
                 else:
                     e_arm.clear()
-                        
+
                 # frame = cv2.flip(frame, 0)
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)  # hsv
                 # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # gray
@@ -258,6 +266,9 @@ def sens(sens_timer):
                             e_hotim_otkl.clear()
                             e_pomidor.clear()
                         pass
+
+                # if not e_start.is_set():
+                #     e_arm.clear()
 
                 # res = cv2.bitwise_and(frame, frame, mask=mask)
 

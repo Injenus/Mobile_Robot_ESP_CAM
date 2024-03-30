@@ -28,7 +28,7 @@ int trans_data[OUT_DATA] = {0, 0, 0}; // l, r, arm_mode
 int len_data;
 int left_speed = 0;
 int right_speed = 0;
-int arm_mode = 1;
+int arm_mode = 0;
 
 char strData[100];
 boolean recievedFlag;
@@ -43,7 +43,7 @@ char temp2[3] = {'1', '0', '\0'};
 
 void setup()
 {
-  Serial.begin(76800); // открываем порт для связи с ПК
+  Serial.begin(115200); // открываем порт для связи с ПК
 
   radio.begin();            // активировать модуль
   radio.setAutoAck(1);      // режим подтверждения приёма, 1 вкл 0 выкл
@@ -86,6 +86,7 @@ void loop()
   if (!recievedFlag) {
     if (Serial.available() > 0) {
       char t = (char)Serial.read();
+      Serial.print(t);
       if (t == 'q') {
         recievedFlag = true;
         cd = 0;
