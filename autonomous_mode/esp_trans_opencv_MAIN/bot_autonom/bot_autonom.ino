@@ -28,13 +28,13 @@ Servo_val sv;
 Servo servo[WHEEL_NUM];
 int pin_arm[4] = {0, 2, 4, 6};
 ServoDriverSmooth arm_servo[4](0x40);
-int arm_pos[4] = {179, 77, 103, 170}; // 0 -var , 1-3 - const
+int arm_pos[4] = {179, 95, 85, 170}; // 0 -var , 1-3 - const  // 90 90
 int arm_mode = 0;
 
 struct Arm_pos {
   int off = 179;
-  int pos1 = 100-25;
-  int pos2 = 140-25;
+  int pos1 = 142;
+  int pos2 = 112;
   bool flag = true;
 };
 Arm_pos apos;
@@ -73,8 +73,7 @@ bool main_flag = false;
 int m_c = 0;
 
 uint32_t arm_timer = 0;
-uint32_t ARM_P = 390;
-
+uint32_t ARM_P = 290; // 333
 int l = 0;
 int r = 0;
 

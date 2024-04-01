@@ -94,7 +94,7 @@ def get_sense():
 
 
 def move(move_timer, ser):
-    dt = 0.09  # 0.06
+    dt = 0.2  # 0.06
 
     base_v = 10
     dop = 1
@@ -198,7 +198,7 @@ def move(move_timer, ser):
 
 
 def sens(sens_timer):
-    dt = 0.07
+    dt = 0.06
     l_h, l_s, l_v = 170, 64, 64
     u_h, u_s, u_v = 180, 255, 255
     l_b = np.array([l_h, l_s, l_v])
@@ -294,7 +294,7 @@ if __name__ == '__main__':
     th_sens.start()
 
     while True:
-        time.sleep(.01)
+        time.sleep(.1)
         if cam_move.ex_event.is_set() or cam_sens.ex_event.is_set():
             break
 
